@@ -1,0 +1,267 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using DG.Tweening;
+using THOK.Tools.Common;
+using UnityEngine;
+using UnityEngine.EventSystems;
+
+/// <summary>
+/// 相机位置点数据
+/// </summary>
+[Serializable]
+public class PosData
+{
+    [SerializeField]
+    public string nodeName;
+    [SerializeField]
+    public Vector3 nodePos;
+    [SerializeField]
+    public bool canPan = true;
+    [SerializeField]
+    public bool canZoom = true;
+    [SerializeField]
+    public bool canRotate = true;
+}
+/// <summary>
+/// 配置当前所在场景库相机的坐标，角度值
+/// </summary>
+[Serializable]
+public class ScenePosData
+{
+    [SerializeField]
+    public string sceneName;
+    [SerializeField]
+    public Vector3 posiTion;
+    [SerializeField]
+    public Vector3 rotaTion;
+}
+
+/// <summary>
+/// 相机控制类
+/// </summary>
+public class OrbitControl : MonoBehaviour
+{
+    [Header("旋转灵敏度")]
+    [Range(0.01f, 0.5f), SerializeField]
+    private float sensitivity = 0.5f;
+    [Range(0.01f, 1), SerializeField]
+    private float EndRotationSensitivity = 0.25f;
+
+    [Header("相机缩放最远距离")]
+    public float cameraFarDistance = -150f;
+    [Header("相机缩放最近距离")]
+    public float cameraNearDistance = -1f;
+
+    [Header("拖拽黏性")]
+    public float panSpeed = 5.0f;
+
+    // private Vector3 Dir;
+    [Header("拖拽边界")]
+    public Vector2 BorderMax = new Vector2(40, 50);
+    public Vector2 BorderMin = new Vector2(-40, -50);
+    // public float MaxX = 40, MaxY = 100, MaxZ = 50, MinX = -40, MinY = -100, MinZ = -50;
+
+    /// <summary>
+    /// 位置点数据
+    /// </summary>
+    [Header("配置机位节点信息")]
+    public List<PosData> posDatas = new List<PosData>();
+
+    [Header("配置当前所在场景库以及坐标和角度")]
+    public List<ScenePosData> scenePosDatas = new List<ScenePosData>();
+
+    /// <summary>
+    /// 缓动速度
+    /// </summary>
+    [Header("相机缓动到节点时间")]
+    public float moveCameraDuration = 0.2f;
+
+    /// <summary>
+    /// 缓动效果
+    /// </summary>
+    [Header("缓动效果")]
+    public Ease moveCameraEase = Ease.Linear;
+
+    private Vector3 prevMousePos;
+    private Transform cameraTrans;
+    //private  Camera _mainCamera;
+    // public Vector3 RealtimePos;
+
+    // [SerializeField]
+    private bool canPanCamera = true;
+
+    private bool IsCamRun = true;
+
+    // [SerializeField]
+    private bool canZoomCamera = true;
+
+    //  [SerializeField]
+    private bool canRotateCamera = true;
+
+    private Transform target;
+
+
+    private float panSpeedInternal;
+
+
+    private Vector3 originCameraPos;
+
+    private Quaternion originCameraQuaternion;
+    private void Awake()
+    {
+        originCameraPos = transform.position;
+        originCameraQuaternion = transform.rotation;
+        if (!target)
+        {
+            GameObject go = new GameObject("Cam Target");
+            target = go.transform;
+            target.position = transform.position;
+        }
+        cameraTrans = Camera.main.transform;
+        //EventCenter.AddListener<string>(EventTable.EVT_CHANGESCENE, ChangeCameraPos);
+    }
+
+    private void Update()
+    {
+        if (IsCamRun)
+        {
+            // if (EventSystem.current.IsPointerOverGameObject())
+            //  {
+            //     return;
+            //   }
+
+            RotateCamera();
+            ZoomCamera();
+            MoveCamera();
+        }
+    }
+
+    private void MoveCamera()
+    {
+        if (!canPanCamera) return;
+        if (Input.GetMouseButton(1))
+        {
+            transform.position = GetCameraControlPos();
+        }
+    }
+    private Vector3 GetCameraControlPos()
+    {
+        target.position = transform.position;
+        target.rotation = transform.rotation;
+        panSpeedInternal = Mathf.Clamp(-cameraTrans.transform.localPosition.z / panSpeed, 0.1f, 100f);
+        target.Translate(Vector3.right * -Input.GetAxis("Mouse X") * panSpeedInternal);
+        target.Translate(transform.up * -Input.GetAxis("Mouse Y") * panSpeedInternal, Space.World);
+        return new Vector3(Mathf.Clamp(target.position.x, BorderMin.x, BorderMax.x), transform.position.y, Mathf.Clamp(target.position.z, BorderMin.y, BorderMax.y));
+    }
+    private void RotateCamera()
+    {
+        if (!canRotateCamera || EventSystem.current.IsPointerOverGameObject()) return;
+        if (Input.GetMouseButtonDown(0))
+        {
+            prevMousePos = Input.mousePosition;
+        }
+        else if (Input.GetMouseButton(0))
+        {
+            var rot = RotateCameraDuring((GetOffsetRotate()));
+            if (rot.x >= 0)
+                transform.eulerAngles = rot;
+            prevMousePos = Input.mousePosition;
+        }
+        else if (Input.GetMouseButtonUp(0))
+        {
+            StartCoroutine(EndRotateCamera());
+        }
+    }
+    private Vector3 GetOffsetRotate()
+    {
+        return Input.mousePosition - prevMousePos;
+    }
+    IEnumerator EndRotateCamera()
+    {
+        Vector3 OffsetRotate = Input.mousePosition - prevMousePos;
+        while (true)
+        {
+            yield return new WaitForEndOfFrame();
+            OffsetRotate = Vector3.Lerp(OffsetRotate, Vector3.zero, EndRotationSensitivity);
+            var rot = RotateCameraDuring((OffsetRotate));
+            transform.eulerAngles = rot;
+            if (OffsetRotate.magnitude < 0.05f)
+            {
+                break;
+            }
+        }
+    }
+    private Vector3 RotateCameraDuring(Vector3 OffsetPos)
+    {
+        Vector2 deltaPos = OffsetPos * sensitivity;
+        Vector3 rot = transform.eulerAngles;
+        while (rot.x > 180f)
+            rot.x -= 360f;
+        while (rot.x < -180f)
+            rot.x += 360f;
+        rot.x = Mathf.Clamp(rot.x - deltaPos.y, 15f, 89.8f);
+        rot.y += deltaPos.x;
+        rot.z = 0f;
+        return rot;
+    }
+    private void ZoomCamera()
+    {
+        if (!canZoomCamera) return;
+        // RealtimePos = mainCamParent.transform.position;
+        var zoom = Input.GetAxisRaw("Mouse ScrollWheel");
+        if (zoom > 0)
+        {
+            cameraTrans.transform.localPosition *= 0.85f;
+        }
+        else if (zoom < 0)
+        {
+            cameraTrans.transform.localPosition *= 1.1f;
+        }
+
+        BorderControl();
+    }
+    private void BorderControl()
+    {
+
+        cameraTrans.transform.localPosition =
+            new Vector3(0, 0, Mathf.Clamp(cameraTrans.transform.localPosition.z, cameraFarDistance, cameraNearDistance));
+    }
+
+    public void SetCanMoveCamera(bool isCanMove)
+    {
+        canPanCamera = isCanMove;
+    }
+    /// <summary>
+    /// 切换场景相机的位置
+    /// </summary>
+    /// <param name="name"></param>
+    public void ChangeCameraPos(string name)
+    {
+        foreach (var item in posDatas)
+        {
+            if (name == item.nodeName)
+            {
+                ResetPostionAndRotation(name);
+                canPanCamera = item.canPan;
+                canRotateCamera = item.canRotate;
+                canZoomCamera = item.canZoom;
+                cameraTrans.DOLocalMove(item.nodePos, moveCameraDuration).SetEase(moveCameraEase);
+            }
+        }
+    }
+
+    private void ResetPostionAndRotation(string name)
+    {
+        foreach (var item in scenePosDatas)
+        {
+            if (item.sceneName == name)
+            {
+                transform.position = item.posiTion;
+                transform.eulerAngles = item.rotaTion;
+            }
+        }
+    }
+
+
+}
