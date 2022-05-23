@@ -5,178 +5,178 @@ using System;
 using CHENCONGCONG;
 namespace CHENCONGCONG
 {
-    /// <summary>
-    /// 注册码
-    /// </summary>
-    public enum eEventType
-    {
-        /// <summary>
-        /// string string float,float,int
-        /// </summary>
-        ShowText = 0,
-    }
+    ///// <summary>
+    ///// 注册码
+    ///// </summary>
+    //public enum string
+    //{
+    //    /// <summary>
+    //    /// string string float,float,int
+    //    /// </summary>
+    //    ShowText = 0,
+    //}
 
     /// <summary>
     /// 事件管理
     /// </summary>
     public class EventCenter
     {
-        static Dictionary<eEventType, Delegate> m_EventTable = new Dictionary<eEventType, Delegate>();
+        static Dictionary<string, Delegate> m_EventTable = new Dictionary<string, Delegate>();
 
-        static void OnListenerAdding(eEventType eventType, Delegate callBack)
+        static void OnListenerAdding(string str, Delegate callBack)
         {
-            if (!m_EventTable.ContainsKey(eventType))
+            if (!m_EventTable.ContainsKey(str))
             {
-                m_EventTable.Add(eventType, null);
+                m_EventTable.Add(str, null);
             }
-            Delegate d = m_EventTable[eventType];
+            Delegate d = m_EventTable[str];
             if (d != null && d.GetType() != callBack.GetType())
             {
-                throw new Exception(string.Format("尝试为事件{0}添加不同类型的委托，当前事件对应的的委托是{1}，要添加的委托类型是{2}", eventType, d.GetType(), callBack));
+                throw new Exception(string.Format("尝试为事件{0}添加不同类型的委托，当前事件对应的的委托是{1}，要添加的委托类型是{2}", str, d.GetType(), callBack));
             }
         }
 
-        static void OnListenerRemoving(eEventType eventType, Delegate callBack)
+        static void OnListenerRemoving(string str, Delegate callBack)
         {
-            if (m_EventTable.ContainsKey(eventType))
+            if (m_EventTable.ContainsKey(str))
             {
-                Delegate d = m_EventTable[eventType];
+                Delegate d = m_EventTable[str];
                 if (d == null)
                 {
-                    throw new Exception(string.Format("移除监听错误:事件{0}没有对应的委托", eventType));
+                    throw new Exception(string.Format("移除监听错误:事件{0}没有对应的委托", str));
                 }
                 else if (d.GetType() != callBack.GetType())
                 {
                     throw new Exception(string.Format("移除监听错误:尝试为事件{0}移除不同类型的委托，当前委托类型为{1}" +
-                        ",要移除的委托的类型为{2}", eventType, d.GetType(), callBack.GetType()));
+                        ",要移除的委托的类型为{2}", str, d.GetType(), callBack.GetType()));
                 }
             }
             else
             {
-                throw new Exception(string.Format("移除监听错误:没有事件码{0}", eventType));
+                throw new Exception(string.Format("移除监听错误:没有事件码{0}", str));
             }
         }
 
-        static void OnListenerRemoved(eEventType eventType)
+        static void OnListenerRemoved(string str)
         {
-            if (m_EventTable[eventType] == null)
+            if (m_EventTable[str] == null)
             {
-                m_EventTable.Remove(eventType);
+                m_EventTable.Remove(str);
             }
         }
         /// <summary>
         /// 无参添加监听的方法
         /// </summary>-
-        /// <param name="eventType"></param>
+        /// <param name="str"></param>
         /// <param name="callBack"></param>
-        public static void AddListener(eEventType eventType, CallBack callBack)
+        public static void AddListener(string str, CallBack callBack)
         {
-            OnListenerAdding(eventType, callBack);
-            m_EventTable[eventType] = (CallBack)m_EventTable[eventType] + callBack;
+            OnListenerAdding(str, callBack);
+            m_EventTable[str] = (CallBack)m_EventTable[str] + callBack;
         }
         /// <summary>
         /// 1参添加监听的方法
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="eventType"></param>
+        /// <param name="str"></param>
         /// <param name="callBack"></param>
-        public static void AddListener<T>(eEventType eventType, CallBack<T> callBack)
+        public static void AddListener<T>(string str, CallBack<T> callBack)
         {
-            OnListenerAdding(eventType, callBack);
-            m_EventTable[eventType] = (CallBack<T>)m_EventTable[eventType] + callBack;
+            OnListenerAdding(str, callBack);
+            m_EventTable[str] = (CallBack<T>)m_EventTable[str] + callBack;
         }
         /// <summary>
         /// 2参添加监听的方法
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <typeparam name="X"></typeparam>
-        /// <param name="eventType"></param>
+        /// <param name="str"></param>
         /// <param name="callBack"></param>
-        public static void AddListener<T, X>(eEventType eventType, CallBack<T, X> callBack)
+        public static void AddListener<T, X>(string str, CallBack<T, X> callBack)
         {
-            OnListenerAdding(eventType, callBack);
-            m_EventTable[eventType] = (CallBack<T, X>)m_EventTable[eventType] + callBack;
+            OnListenerAdding(str, callBack);
+            m_EventTable[str] = (CallBack<T, X>)m_EventTable[str] + callBack;
         }
 
-        public static void AddListener<T, X, Y>(eEventType eventType, CallBack<T, X, Y> callBack)
+        public static void AddListener<T, X, Y>(string str, CallBack<T, X, Y> callBack)
         {
-            OnListenerAdding(eventType, callBack);
-            m_EventTable[eventType] = (CallBack<T, X, Y>)m_EventTable[eventType] + callBack;
+            OnListenerAdding(str, callBack);
+            m_EventTable[str] = (CallBack<T, X, Y>)m_EventTable[str] + callBack;
         }
 
-        public static void AddListener<T, X, Y, Z>(eEventType eventType, CallBack<T, X, Y, Z> callBack)
+        public static void AddListener<T, X, Y, Z>(string str, CallBack<T, X, Y, Z> callBack)
         {
-            OnListenerAdding(eventType, callBack);
-            m_EventTable[eventType] = (CallBack<T, X, Y, Z>)m_EventTable[eventType] + callBack;
+            OnListenerAdding(str, callBack);
+            m_EventTable[str] = (CallBack<T, X, Y, Z>)m_EventTable[str] + callBack;
         }
-        public static void AddListener<T, X, Y, Z, W>(eEventType eventType, CallBack<T, X, Y, Z, W> callBack)
+        public static void AddListener<T, X, Y, Z, W>(string str, CallBack<T, X, Y, Z, W> callBack)
         {
-            OnListenerAdding(eventType, callBack);
-            m_EventTable[eventType] = (CallBack<T, X, Y, Z, W>)m_EventTable[eventType] + callBack;
+            OnListenerAdding(str, callBack);
+            m_EventTable[str] = (CallBack<T, X, Y, Z, W>)m_EventTable[str] + callBack;
         }
         /// <summary>
         /// 移除无参监听的方法
         /// </summary>
-        /// <param name="eventType"></param>
+        /// <param name="str"></param>
         /// <param name="callBack"></param>
-        public static void RemoveListener(eEventType eventType, CallBack callBack)
+        public static void RemoveListener(string str, CallBack callBack)
         {
-            OnListenerRemoving(eventType, callBack);
-            m_EventTable[eventType] = (CallBack)m_EventTable[eventType] - callBack;
-            OnListenerRemoved(eventType);
+            OnListenerRemoving(str, callBack);
+            m_EventTable[str] = (CallBack)m_EventTable[str] - callBack;
+            OnListenerRemoved(str);
         }
         /// <summary>
         /// 移除1参监听的方法
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="eventType"></param>
+        /// <param name="str"></param>
         /// <param name="callBack"></param>
-        public static void RemoveListener<T>(eEventType eventType, CallBack<T> callBack)
+        public static void RemoveListener<T>(string str, CallBack<T> callBack)
         {
-            OnListenerRemoving(eventType, callBack);
-            m_EventTable[eventType] = (CallBack<T>)m_EventTable[eventType] - callBack;
-            OnListenerRemoved(eventType);
+            OnListenerRemoving(str, callBack);
+            m_EventTable[str] = (CallBack<T>)m_EventTable[str] - callBack;
+            OnListenerRemoved(str);
         }
         /// <summary>
         /// 移除2参监听的方法
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="eventType"></param>
+        /// <param name="str"></param>
         /// <param name="callBack"></param>
-        public static void RemoveListener<T, X>(eEventType eventType, CallBack<T, X> callBack)
+        public static void RemoveListener<T, X>(string str, CallBack<T, X> callBack)
         {
-            OnListenerRemoving(eventType, callBack);
-            m_EventTable[eventType] = (CallBack<T, X>)m_EventTable[eventType] - callBack;
-            OnListenerRemoved(eventType);
+            OnListenerRemoving(str, callBack);
+            m_EventTable[str] = (CallBack<T, X>)m_EventTable[str] - callBack;
+            OnListenerRemoved(str);
         }
-        public static void RemoveListener<T, X, Y>(eEventType eventType, CallBack<T, X, Y> callBack)
+        public static void RemoveListener<T, X, Y>(string str, CallBack<T, X, Y> callBack)
         {
-            OnListenerRemoving(eventType, callBack);
-            m_EventTable[eventType] = (CallBack<T, X, Y>)m_EventTable[eventType] - callBack;
-            OnListenerRemoved(eventType);
-        }
-
-        public static void RemoveListener<T, X, Y, Z>(eEventType eventType, CallBack<T, X, Y, Z> callBack)
-        {
-            OnListenerRemoving(eventType, callBack);
-            m_EventTable[eventType] = (CallBack<T, X, Y, Z>)m_EventTable[eventType] - callBack;
-            OnListenerRemoved(eventType);
+            OnListenerRemoving(str, callBack);
+            m_EventTable[str] = (CallBack<T, X, Y>)m_EventTable[str] - callBack;
+            OnListenerRemoved(str);
         }
 
-        public static void RemoveListener<T, X, Y, Z, W>(eEventType eventType, CallBack<T, X, Y, Z, W> callBack)
+        public static void RemoveListener<T, X, Y, Z>(string str, CallBack<T, X, Y, Z> callBack)
         {
-            OnListenerRemoving(eventType, callBack);
-            m_EventTable[eventType] = (CallBack<T, X, Y, Z, W>)m_EventTable[eventType] - callBack;
-            OnListenerRemoved(eventType);
+            OnListenerRemoving(str, callBack);
+            m_EventTable[str] = (CallBack<T, X, Y, Z>)m_EventTable[str] - callBack;
+            OnListenerRemoved(str);
+        }
+
+        public static void RemoveListener<T, X, Y, Z, W>(string str, CallBack<T, X, Y, Z, W> callBack)
+        {
+            OnListenerRemoving(str, callBack);
+            m_EventTable[str] = (CallBack<T, X, Y, Z, W>)m_EventTable[str] - callBack;
+            OnListenerRemoved(str);
         }
         /// <summary>
         /// 广播无参方法
         /// </summary>
-        /// <param name="eventType"></param>
-        public static void Broadcast(eEventType eventType)
+        /// <param name="str"></param>
+        public static void Broadcast(string str)
         {
             Delegate d;
-            if (m_EventTable.TryGetValue(eventType, out d))
+            if (m_EventTable.TryGetValue(str, out d))
             {
                 CallBack callBack = d as CallBack;
                 if (callBack != null)
@@ -185,18 +185,18 @@ namespace CHENCONGCONG
                 }
                 else
                 {
-                    throw new Exception(string.Format("广播事件错误:事件{0}对应的委托具有不同类型", eventType));
+                    throw new Exception(string.Format("广播事件错误:事件{0}对应的委托具有不同类型", str));
                 }
             }
         }
         /// <summary>
         /// 广播1参方法
         /// </summary>
-        /// <param name="eventType"></param>
-        public static void Broadcast<T>(eEventType eventType, T arg)
+        /// <param name="str"></param>
+        public static void Broadcast<T>(string str, T arg)
         {
             Delegate d;
-            if (m_EventTable.TryGetValue(eventType, out d))
+            if (m_EventTable.TryGetValue(str, out d))
             {
                 CallBack<T> callBack = d as CallBack<T>;
                 if (callBack != null)
@@ -205,18 +205,18 @@ namespace CHENCONGCONG
                 }
                 else
                 {
-                    throw new Exception(string.Format("广播事件错误:事件{0}对应的委托具有不同类型", eventType));
+                    throw new Exception(string.Format("广播事件错误:事件{0}对应的委托具有不同类型", str));
                 }
             }
         }
         /// <summary>
         /// 广播2参方法
         /// </summary>
-        /// <param name="eventType"></param>
-        public static void Broadcast<T, X>(eEventType eventType, T arg1, X arg2)
+        /// <param name="str"></param>
+        public static void Broadcast<T, X>(string str, T arg1, X arg2)
         {
             Delegate d;
-            if (m_EventTable.TryGetValue(eventType, out d))
+            if (m_EventTable.TryGetValue(str, out d))
             {
                 CallBack<T, X> callBack = d as CallBack<T, X>;
                 if (callBack != null)
@@ -225,15 +225,15 @@ namespace CHENCONGCONG
                 }
                 else
                 {
-                    throw new Exception(string.Format("广播事件错误:事件{0}对应的委托具有不同类型", eventType));
+                    throw new Exception(string.Format("广播事件错误:事件{0}对应的委托具有不同类型", str));
                 }
             }
         }
 
-        public static void Broadcast<T, X, Y>(eEventType eventType, T arg1, X arg2, Y arg3)
+        public static void Broadcast<T, X, Y>(string str, T arg1, X arg2, Y arg3)
         {
             Delegate d;
-            if (m_EventTable.TryGetValue(eventType, out d))
+            if (m_EventTable.TryGetValue(str, out d))
             {
                 CallBack<T, X, Y> callBack = d as CallBack<T, X, Y>;
                 if (callBack != null)
@@ -242,15 +242,15 @@ namespace CHENCONGCONG
                 }
                 else
                 {
-                    throw new Exception(string.Format("广播事件错误:事件{0}对应的委托具有不同类型", eventType));
+                    throw new Exception(string.Format("广播事件错误:事件{0}对应的委托具有不同类型", str));
                 }
             }
         }
 
-        public static void Broadcast<T, X, Y, Z>(eEventType eventType, T arg1, X arg2, Y arg3, Z arg4)
+        public static void Broadcast<T, X, Y, Z>(string str, T arg1, X arg2, Y arg3, Z arg4)
         {
             Delegate d;
-            if (m_EventTable.TryGetValue(eventType, out d))
+            if (m_EventTable.TryGetValue(str, out d))
             {
                 CallBack<T, X, Y, Z> callBack = d as CallBack<T, X, Y, Z>;
                 if (callBack != null)
@@ -259,15 +259,15 @@ namespace CHENCONGCONG
                 }
                 else
                 {
-                    throw new Exception(string.Format("广播事件错误:事件{0}对应的委托具有不同类型", eventType));
+                    throw new Exception(string.Format("广播事件错误:事件{0}对应的委托具有不同类型", str));
                 }
             }
         }
 
-        public static void Broadcast<T, X, Y, Z, W>(eEventType eventType, T arg1, X arg2, Y arg3, Z arg4, W arg5)
+        public static void Broadcast<T, X, Y, Z, W>(string str, T arg1, X arg2, Y arg3, Z arg4, W arg5)
         {
             Delegate d;
-            if (m_EventTable.TryGetValue(eventType, out d))
+            if (m_EventTable.TryGetValue(str, out d))
             {
                 CallBack<T, X, Y, Z, W> callBack = d as CallBack<T, X, Y, Z, W>;
                 if (callBack != null)
@@ -276,7 +276,7 @@ namespace CHENCONGCONG
                 }
                 else
                 {
-                    throw new Exception(string.Format("广播事件错误:事件{0}对应的委托具有不同类型", eventType));
+                    throw new Exception(string.Format("广播事件错误:事件{0}对应的委托具有不同类型", str));
                 }
             }
         }
