@@ -1,8 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
-using THOK.Tools.Common;
 using UnityEngine.EventSystems;
-using DG.Tweening;
 public class ChinarSmoothUi3DCamera : MonoBehaviour
 {
     public Transform pivot;
@@ -24,7 +22,6 @@ public class ChinarSmoothUi3DCamera : MonoBehaviour
     private float xVelocity = 1f;
     private float yVelocity = 1f;
     private float zoomVelocity = 1f;
-    private static UrlData urlDat = new UrlData();
     bool isSuccess = false;
     private Transform allModel;
     public static float targetXMove = 0f;
@@ -35,105 +32,6 @@ public class ChinarSmoothUi3DCamera : MonoBehaviour
         targetX = x = angles.x;
         targetY = y = ClampAngle(angles.y, yMinLimit, yMaxLimit);
         targetDistance = distance;
-        mainCamera = Camera.main;
-        EventCenter.AddListener(EventTable.EVE_CLOSE_RGVSCENEANIMATION, ResetClick);
-    }
-    private Ray ray;
-    public LayerMask layerMask;
-    private float downMouseTime;//按下鼠标的持续时间
-    private bool CanClick = true;//当前物体是否可以继续点击
-    private GameObject currentClickObj;      //记录当前点击的物体
-    private Transform oldTrans; //记录上一个点击的物体
-    private Color oldClickObjColor;//记录点击物体初始的颜色
-    Camera mainCamera;
-    private bool isClose = true;//记录当前是否关闭悬浮窗口(默认关闭)
-    private Dictionary<string, Texture> OldTextureDic = new Dictionary<string, Texture>();
-    void Update()
-    {
-        if (Input.GetMouseButtonDown(0))
-        {
-            if (EventSystem.current.IsPointerOverGameObject()) return;
-            ray = mainCamera.ScreenPointToRay(Input.mousePosition);
-            if (Physics.Raycast(ray, out RaycastHit hit, 500, layerMask))
-            {
-                if (hit.transform.tag == "RGVBoosterDoor") return;
-                downMouseTime += Time.deltaTime;
-                var currentName = hit.transform.name;
-                if (string.IsNullOrEmpty(currentName)) return;
-                else
-                {
-                    bool isClick = false;
-                    if (downMouseTime <= 0.1f && (CanClick || currentName == currentClickObj.name))
-                    {
-                        isClose = !isClose;
-                        isClick = true;  
-                    }
-                    else if (downMouseTime <= 0.1f && (CanClick || currentName != currentClickObj.name))
-                    {
-                        isClose = false;
-                        isClick = true;
-                    }
-                    if (isClick)
-                    {
-                        //OnClick(hit.transform);
-                        currentClickObj = hit.transform.gameObject;
-                        EventCenter.Dispatch(EventTable.EVE_HIDDEN_RGVSCENE_WINDOWS_UI, currentClickObj.name, isClose);//RGV模型点击事件
-                        CanClick = false;
-                    }
-                }
-                downMouseTime = 0;
-            }
-        }
-    }
-    /// <summary>
-    /// 点击事件
-    /// </summary>
-    private void OnClick(Transform transform)
-    {
-        ResetColor();
-        UpdateObjColor(transform);
-    }
-    public void ResetClick()
-    {
-        ResetColor();
-    }
-    private void UpdateObjColor(Transform currentHitTransform)
-    {
-        if (isClose) return;
-        oldTrans = currentHitTransform;
-        var mat = oldTrans.GetComponentInChildren<MeshRenderer>();
-        if (!OldTextureDic.ContainsKey(oldTrans.name))
-        {
-            OldTextureDic.Add(oldTrans.name, mat.material.mainTexture);
-        }
-        oldClickObjColor = mat.material.color;
-        mat.material.mainTexture = null;
-        mat.material.DOColor(Color.red, 0.3f).SetLoops(-1, LoopType.Yoyo).SetId(nameof(ChinarSmoothUi3DCamera));
-        foreach (Transform item in currentHitTransform)
-        {
-            UpdateObjColor(item);
-        }
-    }
-    /// <summary>
-    /// 关闭物体闪烁
-    /// </summary>
-    private void ResetColor()
-    {
-        CanClick = true;
-        DOTween.Kill(nameof(ChinarSmoothUi3DCamera));
-        if (oldTrans == null) return;
-        oldTrans?.GetComponentInChildren<MeshRenderer>().material.DOColor(oldClickObjColor, 0.1f);
-        currentClickObj?.GetComponentInChildren<MeshRenderer>().material.DOColor(oldClickObjColor, 0.1f);
-        var meshRenderer = oldTrans.parent.GetComponent<MeshRenderer>();
-        if (meshRenderer)
-        {
-            meshRenderer.material.DOColor(oldClickObjColor, 0.1f);
-        }
-        if (OldTextureDic.ContainsKey(oldTrans.name))
-        {
-            oldTrans?.GetComponentInChildren<MeshRenderer>().material.SetTexture("_MainTex", OldTextureDic[oldTrans.name]);
-            OldTextureDic.Clear();
-        }
     }
     private void LateUpdate()
     {
@@ -176,18 +74,5 @@ public class ChinarSmoothUi3DCamera : MonoBehaviour
         targetYMove -= Input.GetAxis("Mouse Y") * 0.02f;
 
         transform.GetComponent<Camera>().lensShift = new Vector2(-targetXMove, targetYMove);
-    }
-    /// <summary>
-    /// 提供给前端JS调用的方法
-    /// </summary>
-    /// <param name="equipName"></param>
-    public void ClickEquipInfo(string equipName)
-    {
-        foreach (Transform item in allModel)
-        {
-            item.gameObject.SetActive(false);
-        }
-        pivot = allModel.transform.Find(equipName);
-        pivot.gameObject.SetActive(true);
     }
 }
