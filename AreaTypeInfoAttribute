@@ -1,0 +1,9 @@
+using System;
+public class AreaTypeInfoAttribute: Attribute
+    {
+        public LocationType areaType; //处理器所对应的区域ID
+        public AreaTypeInfoAttribute(LocationType type)
+        {
+            areaType = type;
+        }
+    }
