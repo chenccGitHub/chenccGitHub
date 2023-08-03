@@ -1,0 +1,25 @@
+using System;
+using System.Collections.Generic;
+using System.Reflection;
+public class ReflectionHelp
+{
+    // 使用反射获取指定基类的所有子类
+    public static List<Type> GetAllDerivedTypes(Type baseType)
+    {
+        List<Type> derivedTypes = new List<Type>();
+        Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
+        foreach (Assembly assembly in assemblies)
+        {
+            Type[] types = assembly.GetTypes();
+            foreach (Type type in types)
+            {
+                if (type.IsSubclassOf(baseType) && !type.IsAbstract)
+                {
+                    derivedTypes.Add(type);
+                }
+            }
+        }
+        return derivedTypes;
+    }
+}
+
