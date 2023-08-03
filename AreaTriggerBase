@@ -1,0 +1,43 @@
+public abstract class AreaTriggerBase
+    {
+        /// <summary>
+        /// 用户进入某个区域ID时触发
+        /// </summary>
+        public abstract void EnterTriggerArea(LocationType _type);
+
+        /// <summary>
+        /// 用户退出某个区域ID时触发
+        /// </summary>
+        public abstract void ExitTriggerArea(LocationType _type);
+
+        public void OnTriggerAreaState(LocationType currentAreaType, LocationType priorAreaType)
+        {
+            var method = currentAreaType == LocationType.STARPLAZA_COMMON_AREA ? "ExitTriggerArea" : "EnterTriggerArea";
+            // 获取当前调用的方法信息
+            var methodInfo = GetType().GetMethod(method);
+
+            if (methodInfo.IsDefined(typeof(AreaTypeInfoAttribute), true))
+            {
+                var attribute = methodInfo.GetCustomAttributes(typeof(AreaTypeInfoAttribute), true)[0] as AreaTypeInfoAttribute;
+                if (currentAreaType == attribute.areaType)
+                {
+                    EnterTriggerArea(currentAreaType);
+                }
+                if (priorAreaType == attribute.areaType)
+                {
+                    ExitTriggerArea(priorAreaType);
+                }
+                //if (attribute.areaType == LocationType.All_AREA)
+                //{
+                //    if (currentAreaType != LocationType.STARPLAZA_COMMON_AREA)
+                //    {
+                //        EnterTriggerArea(currentAreaType);
+                //    }
+                //    else
+                //    {
+                //        ExitTriggerArea(priorAreaType);
+                //    }
+                //}
+                
+            }
+        }
