@@ -1,0 +1,40 @@
+/// <summary>
+/// 更新用户所处区域信息
+/// </summary>
+public class UpdateEnterAreaInfo : BaseNetObject
+{
+    private LocationType priorAreaType;//上一次区域ID
+    private LocationType currentAreaType;//当前区域ID
+    private Vector3 currentPlayerPoint; //记录当前玩家坐标
+    private bool isInit; //检测是否已经初始化
+    private List<Type> allDerivedUserInTargetAreaBaseTypes; //记录所有派生类继承UserInTargetAreaBase类的类型集合
+    public override void OnClientUpdate()
+    {
+        //检测当前地图上的用户数量是否为0
+        if (GlobalInstanceMapping.Instance.InstanceMapping.Values.Count <= 0)
+            return;
+        //检测任务是否已加载
+        if (PlayerManager.Instance.mainPlayer == null)
+            return;
+        //坐标不变的话就不更新了
+        Vector3 playerPoint = PlayerManager.Instance.mainPlayer.position;
+        if (currentPlayerPoint == playerPoint)
+            return;
+        //区域类型不变也不更新了
+        currentAreaType = TrackAreaPointHandler.GetTargetInWhereAreaId(playerPoint);
+        if (priorAreaType == currentAreaType)
+            return;
+        if (!isInit)
+        {
+            allDerivedUserInTargetAreaBaseTypes = ReflectionHelp.GetAllDerivedTypes(typeof(AreaTriggerBase));
+            isInit = true;
+        }
+        foreach (Type subtype in allDerivedUserInTargetAreaBaseTypes)
+        {
+            AreaTriggerBase instance = Activator.CreateInstance(subtype) as AreaTriggerBase;
+            instance.OnTriggerAreaState(currentAreaType, priorAreaType);
+        }
+        priorAreaType = currentAreaType;
+        currentPlayerPoint = playerPoint;
+    }
+}
